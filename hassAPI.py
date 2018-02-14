@@ -46,6 +46,24 @@ class hassIF(object):
         url = self.url + 'error_log'
         return self._getRes(url)
 
+class hass_sensor(hassIF):
+    def __init__(self,id):
+        super(hass_light,self).__init__()
+        self.id = id
+        self.stat = self._getStatus()
+
+    def _getStatus(self):
+        return 0
+
+    def statChk(self):
+        stat = self._getStatus()
+        if (self.stat == 0) and (stat == 1):
+            return 1
+        elif(self.stat == 1) and (stat == 0):
+            return 2
+        else:
+            return 0
+
 
 class hass_light(hassIF):
     def __init__(self,id, att = None):
@@ -95,28 +113,35 @@ class hass_light(hassIF):
 class hassAPI(object):
     def __init__(self):
         self.light = {}
+        self.sensor = {}
+        self._initHass()
+    def _initLight(self):
+        pass
+    def _initSensor(self):
+        pass
+    def _initHass(self):
+        self._initLight()
+        self._initSensor()
     def cmdProc(self, cmd):
+        if 'hass_light' in cmd['target']:
+            self.lightCtrl(cmd)
+    def lightCtrl(self,cmd):
         att = {}
         att['red'] = 255
         att['green'] = 0
         att['blue'] = 0
         att['bright'] = 200
-        if 'hass_light' in cmd:
-            logging.debug(cmd)
-            cl = cmd.split(' ')
-            eid = 'light.' + cl[2]
-            act = cl[1]
-            if eid not in self.light.keys():
-                logging.debug('new light init')
-                self.light[eid] = hass_light(eid,att)
-            logging.debug('length is %d'%len(cl))
-            if len(cl) > 3:
-                self.light[eid].updateAttr(cl[3])
-            getattr(self.light[eid],act)()
+        logging.debug(cmd)
+        eid = 'light.' + cmd['eid']
+        act = cmd['act']
+        if eid not in self.light.keys():
+            logging.debug('new light init')
+            self.light[eid] = hass_light(eid,att)
+        logging.debug('length is %d'%len(cmd))
+        if len(cmd) > 3:
+            self.light[eid].updateAttr(cmd[3])
+        getattr(self.light[eid],act)()
 
-
-    def getEid(self,cmd):
-        m = re.search('')
     def getDevStat(self):
         pass
 

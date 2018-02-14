@@ -36,17 +36,25 @@ class venaAI(object):
         else:
             id = 2
         return (id, resp)
+    def _devCtrlCmdParse(self,cmd):
+        trans = {}
+        cl = cmd.split(' ')
+        trans['target'] = cl[0]
+        trans['act'] = cl[1]
+        trans['eid'] = cl[2]
+        return trans
     def brain(self,cmd):
         cmdp = self.aimlUnderstand(cmd)
         if cmdp[0] == 0:
-            self._ctrlDev(cmdp[1])
+            trans = self._devCtrlCmdParse(cmdp[1])
+            self._ctrlDev(trans)
         elif cmdp[0] == 1:
             self._srhInfo(cmdp[1])
         else:
             logging.info(cmdp[1])
 
-        
-        
+
+
 
 if __name__ == "__main__":
     api = hassAPI()
