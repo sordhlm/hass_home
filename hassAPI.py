@@ -143,7 +143,10 @@ class hassAPI(object):
         getattr(self.light[eid],act)()
 
     def getDevStat(self):
-        pass
+        #cmdl = 'hass livingroom door open'
+        cmdl = 'debug ... '
+        return cmdl
+
 
 
 if __name__ == '__main__':

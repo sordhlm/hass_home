@@ -28,7 +28,11 @@ class venaAI(object):
         return res
 
     def aimlUnderstand(self,cmd):
+        if cmd['usr'] == 'dev':
+            resp = self.vena.respond('HASS CONTROL')
         resp = self.vena.respond(cmd['cmd'])
+        #logging.debug(resp)
+        print(resp)
         if 'hass' in resp:
             id = 0
         elif 'srh' in resp:
@@ -43,15 +47,28 @@ class venaAI(object):
         trans['act'] = cl[1]
         trans['eid'] = cl[2]
         return trans
-    def brain(self,cmd):
-        cmdp = self.aimlUnderstand(cmd)
-        if cmdp[0] == 0:
-            trans = self._devCtrlCmdParse(cmdp[1])
-            self._ctrlDev(trans)
-        elif cmdp[0] == 1:
-            self._srhInfo(cmdp[1])
+    def _isValidCmd(self,cmd):
+        return 1
+        if len(cmd) != 2:
+            return 0
+        elif (cmd['usr'] != 'master') or (cmd['usr'] != 'dev'):
+            return 0
+        elif (cmd['usr'] != 'dev') and ('hass' in cmd['cmd']):
+            return 0
         else:
-            logging.info(cmdp[1])
+            return 1
+    def brain(self,cmd):
+        if self._isValidCmd(cmd):
+            cmdp = self.aimlUnderstand(cmd)
+            if cmdp[0] == 0:
+                trans = self._devCtrlCmdParse(cmdp[1])
+                self._ctrlDev(trans)
+            elif cmdp[0] == 1:
+                self._srhInfo(cmdp[1])
+            else:
+                logging.info(cmdp[1])
+        else:
+            logging.info('Invalid Usr or Command!')
 
 
 

@@ -111,4 +111,19 @@ what you want to do?
 </category>
 </topic>
 
+<category>
+<pattern>HASS CONTROL</pattern>
+<template>
+<think><set name="topic">HASS</set></think>
+</template>
+</category>
+
+<topic name= "HASS">
+<category>
+<pattern>HASS * DOOR OPEN</pattern>
+<template>
+hass_light turnOn <star/>
+</template>
+</category>
+</topic>
 </aiml>

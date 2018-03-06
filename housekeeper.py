@@ -12,15 +12,18 @@ class housekeeper(object):
         self.msgQ = Queue()
         self.hass = hassAPI()
         self.vena = venaAI()
-        self.delta = 1
         self.nte = Value('i',0)
+        self.ddebug = Value('i',1)
+        self.dsensor = Value('i',5)
+        self.dpro = Value('i',1)
 
     def sensorRec(self):
         cmdl = {}
+        cmdl['usr'] = 'dev'
+        logging.debug('before send cmd')
         while True:
-            time.sleep(5)
-            cmdl['usr'] = 'dev'
-            cmdl['cmd'] = 'hass door open'
+            time.sleep(self.dsensor.value)
+            cmdl['cmd'] = self.hass.getDevStat()
             self.msgQ.put(cmdl)
 
     def remoteRec(self,fn):
@@ -33,7 +36,7 @@ class housekeeper(object):
         sys.stdin = os.fdopen(fn)
         cmdl = {}
         while True:
-            time.sleep(self.delta)
+            time.sleep(self.ddebug.value)
             cmd = input('[Debug]Enter your cmd:')
             cmdl['usr'] = 'master'
             cmdl['cmd'] = cmd
@@ -44,6 +47,7 @@ class housekeeper(object):
             #time.sleep(10)
             cmd = self.msgQ.get()
             logging.debug('get cmd:%s'%cmd)
+            print('get cmd:%s'%cmd)
             self.vena.brain(cmd)
 
 if __name__ == "__main__":
