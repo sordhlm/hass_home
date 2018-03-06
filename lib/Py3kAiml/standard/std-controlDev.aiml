@@ -125,5 +125,26 @@ what you want to do?
 hass_light turnOn <star/>
 </template>
 </category>
+
+<category>
+<pattern>HASS * DOOR CLOSE</pattern>
+<template>
+hass_light turnOff <star/>
+</template>
+</category>
+
+<category>
+<pattern>HASS * PEOPLE APPEAR</pattern>
+<template>
+hass_light turnOn <star/>
+</template>
+</category>
+
+<category>
+<pattern>HASS * PEOPLE LEAVE</pattern>
+<template>
+hass_light turnOff <star/>
+</template>
+</category>
 </topic>
 </aiml>
