@@ -47,22 +47,31 @@ class hassIF(object):
         return self._getRes(url)
 
 class hass_sensor(hassIF):
-    def __init__(self,id):
-        super(hass_light,self).__init__()
+    def __init__(self,id = ''):
+        super(hass_sensor,self).__init__()
         self.id = id
-        self.stat = self._getStatus()
-
-    def _getStatus(self):
-        return 0
-
-    def statChk(self):
-        stat = self._getStatus()
-        if (self.stat == 0) and (stat == 1):
-            return 1
-        elif(self.stat == 1) and (stat == 0):
-            return 2
-        else:
+        self.stat = 0
+        self._initstat()
+    def _initstat(self):
+        self.getSer()
+    def getSer(self):
+        serv = self.getStatus()
+        #logging.debug(serv)
+        dev_name = 'binary_sensor.'+self.id
+        for i in serv:
+            if dev_name in i['entity_id']:
+                self.stat = 1 if 'on' in i['state'] else 0
+                logging.debug('state update: %d'%self.stat)
+                #logging.debug(i)
+    def chkStat(self):
+        old_stat = self.stat
+        self.getSer()
+        if ((old_stat & 1) ^ (self.stat & 1)) == 0:
             return 0
+        elif (old_stat == 1 and self.stat == 0): #door is closing
+            return 1
+        else:  # door is opening
+            return 2
 
 
 class hass_light(hassIF):
@@ -146,6 +155,8 @@ class hassAPI(object):
         #cmdl = 'hass livingroom door open'
         cmdl = 'debug ... '
         return cmdl
+
+
 
 
 
