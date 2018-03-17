@@ -47,21 +47,21 @@ class hassIF(object):
         return self._getRes(url)
 
 class hass_sensor(hassIF):
-    def __init__(self,id = ''):
+    def __init__(self,id = '',stat = 0):
         super(hass_sensor,self).__init__()
         self.id = id
-        self.stat = 0
+        self.stat = stat
         self._initstat()
     def _initstat(self):
         self.getSer()
     def getSer(self):
         serv = self.getStatus()
         #logging.debug(serv)
-        dev_name = 'binary_sensor.'+self.id
+        dev_name = self.id
         for i in serv:
             if dev_name in i['entity_id']:
                 self.stat = 1 if 'on' in i['state'] else 0
-                logging.debug('state update: %d'%self.stat)
+                logging.debug('%s state update: %d'%(self.id,self.stat))
                 #logging.debug(i)
     def chkStat(self):
         old_stat = self.stat
@@ -75,9 +75,10 @@ class hass_sensor(hassIF):
 
 
 class hass_light(hassIF):
-    def __init__(self,id, att = None):
+    def __init__(self,id, stat=0, att = None):
         super(hass_light,self).__init__()
         self.id = id
+        self.stat = stat
         if att != None:
             self.att = att
         self._initAttr()
@@ -121,16 +122,33 @@ class hass_light(hassIF):
 
 class hassAPI(object):
     def __init__(self):
+        self.hif = hassIF()
         self.light = {}
         self.sensor = {}
         self._initHass()
-    def _initLight(self):
-        pass
-    def _initSensor(self):
-        pass
+    def _initLight(self,stat):
+        att = {}
+        att['red'] = 255
+        att['green'] = 0
+        att['blue'] = 0
+        att['bright'] = 200
+        for i in stat:
+            if 'light.' in i['entity_id']:
+                eid = i['entity_id']
+                stat = 1 if 'on' in i['state'] else 0
+                self.light[eid] = hass_light(eid,stat,att)
+                logging.debug('Create light: %s'%eid)
+    def _initSensor(self,stat):
+        for i in stat:
+            if 'binary_sensor.' in i['entity_id']:
+                eid = i['entity_id']
+                stat = 1 if 'on' in i['state'] else 0
+                self.sensor[eid] = hass_sensor(eid,stat)
+                logging.debug('Create Sensor: %s'%eid)
     def _initHass(self):
-        self._initLight()
-        self._initSensor()
+        stat = self.hif.getStatus()
+        self._initLight(stat)
+        self._initSensor(stat)
     def cmdProc(self, cmd):
         if 'hass_light' in cmd['target']:
             self.lightCtrl(cmd)
@@ -145,7 +163,7 @@ class hassAPI(object):
         act = cmd['act']
         if eid not in self.light.keys():
             logging.debug('new light init')
-            self.light[eid] = hass_light(eid,att)
+            self.light[eid] = hass_light(eid,0,att)
         logging.debug('length is %d'%len(cmd))
         if len(cmd) > 3:
             self.light[eid].updateAttr(cmd[3])
@@ -153,8 +171,17 @@ class hassAPI(object):
 
     def getDevStat(self):
         #cmdl = 'hass livingroom door open'
-        cmdl = 'debug ... '
-        return cmdl
+        #print(self.sensor)
+        for i in self.sensor.keys():
+            ret = self.sensor[i].chkStat()
+            logging.debug('%s sensor check: %d'%(i,ret))
+            if ret == 2:
+                cmd = 'hass livingroom door open'
+                return cmd
+            else:
+                cmd = 'nothing happen'
+        return cmd
+            
 
 
 
@@ -162,15 +189,23 @@ class hassAPI(object):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    api = hassAPI()
-    api.cmdProc('hass_light turnOn livingroom red+10')
-
-    attr = {}
-    attr['red'] = 255
-    attr['green'] = 200
-    attr['blue'] = 0
-    l1 = hass_light('light.livingroom',attr)
+    #api = hassAPI()
+    #api.cmdProc('hass_light turnOn livingroom red+10')
+#
+    #attr = {}
+    #attr['red'] = 255
+    #attr['green'] = 200
+    #attr['blue'] = 0
+    #l1 = hass_light('light.livingroom',attr)
     #l1.turnOn()
+    sr = hass_sensor('motion_sensor')
+    stat = sr.getStatus()
+    #for i in stat:
+    #   print(i['entity_id'],i['state'])
+    api = hassAPI()
+    while True:
+        time.sleep(1)
+        api.getDevStat()
     #cmd = ['light.Living_Room', 'turn on']
     #for i in range(0, 20):
     #    time.sleep(1)
