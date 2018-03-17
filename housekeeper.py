@@ -20,7 +20,6 @@ class housekeeper(object):
     def sensorRec(self):
         cmdl = {}
         cmdl['usr'] = 'dev'
-        logging.debug('before send cmd')
         while True:
             time.sleep(self.dsensor.value)
             cmdl['cmd'] = self.hass.getDevStat()
@@ -51,12 +50,14 @@ class housekeeper(object):
             self.vena.brain(cmd)
 
 if __name__ == "__main__":
-    shome = housekeeper()
     logging.basicConfig(level=logging.DEBUG)
+    shome = housekeeper()
     fn = sys.stdin.fileno()
+    #shome.sensorRec()
     #while True:
     #    a = sys.stdin.readline()
     #    print(a)
+
     p1 = Process(target=shome.debugRec, args=(fn,))
     p2 = Process(target=shome.sensorRec, args=())
     p3 = Process(target=shome.cmdProc, args=())
@@ -68,3 +69,4 @@ if __name__ == "__main__":
     p1.join()
     p2.join()
     p3.join()
+
