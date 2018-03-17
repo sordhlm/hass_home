@@ -49,7 +49,7 @@ hass_light turnOn <star/><think><set name="last_light"><star/></set><set name="t
 <category>
 <pattern>TURN OFF *</pattern>
 <template>
-hass_light turnoff <star/>
+hass_light turnOff <star/>
 </template>
 </category>
 
@@ -144,6 +144,13 @@ hass_light turnOn <star/>
 <pattern>HASS * PEOPLE LEAVE</pattern>
 <template>
 hass_light turnOff <star/>
+</template>
+</category>
+
+<category>
+<pattern>*</pattern>
+<template>
+nothing happen
 </template>
 </category>
 </topic>
