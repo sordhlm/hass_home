@@ -23,7 +23,8 @@ class housekeeper(object):
         while True:
             time.sleep(self.dsensor.value)
             cmdl['cmd'] = self.hass.getDevStat()
-            self.msgQ.put(cmdl)
+            if cmdl['cmd']:
+                self.msgQ.put(cmdl)
 
     def remoteRec(self,fn):
         pass

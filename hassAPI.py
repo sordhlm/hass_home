@@ -46,6 +46,36 @@ class hassIF(object):
         url = self.url + 'error_log'
         return self._getRes(url)
 
+class hass_weather(hassIF):
+    def __init__(self):
+        super(hass_weather,self).__init__()
+        self.__initstat()
+    def __initstat(self):
+        self.weather = {}
+        serv = self.getStatus()
+        for i in serv:
+            if 'sensor.weather' in i['entity_id']:
+                self.weather[i['entity_id']] = i['state']
+    def weatherDisplay(self):
+        for i in self.weather.keys():
+            print ('eid: %s, stat: %s'%(i,self.weather[i]))
+    def weatherChk(self):
+        ret = ''
+        logging.debug('temperature: %d'%int(self.weather['sensor.weather_temperature']))
+        if int(self.weather['sensor.weather_temperature']) < 0:
+            ret = 'hass temperature very cold'
+        elif int(self.weather['sensor.weather_temperature']) < 10:
+            ret = 'hass temperature bit cold'
+        elif int(self.weather['sensor.weather_temperature']) < 30:
+            ret = 'hass temperature good'
+        elif int(self.weather['sensor.weather_temperature']) < 35:
+            ret = 'hass temperature bit hot'
+        else:
+            ret = 'hass temperature very hot'
+        return ret
+
+
+
 class hass_sensor(hassIF):
     def __init__(self,id = '',stat = 0):
         super(hass_sensor,self).__init__()
@@ -172,14 +202,13 @@ class hassAPI(object):
     def getDevStat(self):
         #cmdl = 'hass livingroom door open'
         #print(self.sensor)
+        cmd = 0
         for i in self.sensor.keys():
             ret = self.sensor[i].chkStat()
             logging.debug('%s sensor check: %d'%(i,ret))
             if ret == 2:
                 cmd = 'hass livingroom door open'
                 return cmd
-            else:
-                cmd = 'nothing happen'
         return cmd
             
 
@@ -189,24 +218,10 @@ class hassAPI(object):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    #api = hassAPI()
-    #api.cmdProc('hass_light turnOn livingroom red+10')
-#
-    #attr = {}
-    #attr['red'] = 255
-    #attr['green'] = 200
-    #attr['blue'] = 0
-    #l1 = hass_light('light.livingroom',attr)
-    #l1.turnOn()
-    sr = hass_sensor('motion_sensor')
-    stat = sr.getStatus()
-    #for i in stat:
-    #   print(i['entity_id'],i['state'])
-    api = hassAPI()
-    while True:
-        time.sleep(1)
-        api.getDevStat()
-    #cmd = ['light.Living_Room', 'turn on']
-    #for i in range(0, 20):
-    #    time.sleep(1)
-    #    api.turnOn('light.Living_Room', 255, 255, i * 10)
+    wea = hass_weather()
+    stat = wea.getStatus()
+    for i in stat:
+        print(i)
+    wea.weatherDisplay()
+    ret = wea.weatherChk()
+    print(ret)

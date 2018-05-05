@@ -4,6 +4,7 @@ import logging
 import aiml
 import os
 import re
+import pyttsx3
 
 class venaAI(object):
     def __init__(self):
@@ -31,8 +32,8 @@ class venaAI(object):
         if cmd['usr'] == 'dev':
             resp = self.vena.respond('HASS CONTROL')
         resp = self.vena.respond(cmd['cmd'])
-        #logging.debug(resp)
-        print(resp)
+        logging.debug(resp)
+        #print(resp)
         if 'hass' in resp:
             id = 0
         elif 'srh' in resp:
@@ -66,7 +67,11 @@ class venaAI(object):
             elif cmdp[0] == 1:
                 self._srhInfo(cmdp[1])
             else:
-                logging.info(cmdp[1])
+                logging.info('[VENA]'+cmdp[1])
+                eng = pyttsx3.init()
+                eng.setProperty('voice', 'english-us')
+                eng.say(cmdp[1])
+                eng.runAndWait()
         else:
             logging.info('Invalid Usr or Command!')
 
@@ -74,7 +79,7 @@ class venaAI(object):
 
 
 if __name__ == "__main__":
-    api = hassAPI()
+    #api = hassAPI()
     vena = venaAI()
     while True:
         cmd = input('Enter your cmd:')
@@ -95,3 +100,12 @@ if __name__ == "__main__":
     #        elif 'shutdown' in msg.text:
     #            print('get shutdown cmd')
     #            exit(1)
+    #engine = pyttsx3.init()
+    #voices = engine.getProperty('name')
+    #for voice in voices:
+    #    print(voice.id)
+    #    engine.setProperty('name', voice.id)
+    #    engine.say('how are you')
+    #    engine.runAndWait()
+    #    time.sleep(1)
+
