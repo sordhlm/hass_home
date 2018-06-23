@@ -1,6 +1,6 @@
 from requests import get
 from requests import post
-import logging, json, time
+import logging, json, time, datetime
 import re
 
 
@@ -143,7 +143,13 @@ class hass_light(hassIF):
         url = self.url + 'services/light/turn_off'
         data = {'entity_id': '%s' % self.id}
         return self._postRes(url, data)
-
+    def turnRed(self,attr)
+        att = {}
+        att['red'] = 255
+        att['green'] = 0
+        att['blue'] = 0
+        att['bright'] = 200
+        pass
     def getLightSer(self):
         serv = self._getServ()
         for i in serv:
@@ -199,6 +205,16 @@ class hassAPI(object):
             self.light[eid].updateAttr(cmd[3])
         getattr(self.light[eid],act)()
 
+    def time_chk(self):
+        t_morn = datetime.time(7,0,0)
+        t_up = datetime.time(7,30,0)
+        t_night = datetime.time(19,0,0)
+        t_now = datetime.datetime.time(datetime.datetime.now())
+        if (t_now > t_morn) and (t_now < t_up):
+            return 'morning'
+        elif (t_now > t_night):
+            return 'night'
+
     def getDevStat(self):
         #cmdl = 'hass livingroom door open'
         #print(self.sensor)
@@ -206,11 +222,14 @@ class hassAPI(object):
         for i in self.sensor.keys():
             ret = self.sensor[i].chkStat()
             logging.debug('%s sensor check: %d'%(i,ret))
-            if ret == 2:
-                cmd = 'hass livingroom door open'
-                return cmd
+            t = time_chk()
+            if ('motion_sensor') in i and (ret == 2) and ('night' in t):
+                return 'hass livingroom1bed people appear'
+            elif ('morning' in t):
+                return 'hass livingroom1desk weather bad'
+
         return cmd
-            
+
 
 
 

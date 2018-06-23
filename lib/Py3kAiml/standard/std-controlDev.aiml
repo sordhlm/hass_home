@@ -148,6 +148,13 @@ hass_light turnOff <star/>
 </category>
 
 <category>
+<pattern>HASS * weather bad</pattern>
+<template>
+hass_light turnRed <star/>
+</template>
+</category>
+
+<category>
 <pattern>*</pattern>
 <template>
 nothing happen
