@@ -2,11 +2,12 @@ from requests import get
 from requests import post
 import logging, json, time, datetime
 import re
+import random
 
 
 class hassIF(object):
 
-    def __init__(self, ip='192.168.1.108', passwd='Pian#0919'):
+    def __init__(self, ip='192.168.1.105', passwd='Pian#0919'):
         self.url = 'http://%s:8123/api/' % ip
         self.head = {'x-ha-access': '%s' % passwd,'content-type': 'application/json'}
 
@@ -111,16 +112,14 @@ class hass_light(hassIF):
         self.stat = stat
         if att != None:
             self.att = att
+        else:
+            self.att = {}
         self._initAttr()
     def _initAttr(self):
-        if 'red' not in self.att.keys():
-            self.att['red'] = 100
-        if 'green' not in self.att.keys():
-            self.att['green'] = 100
-        if 'blue' not in self.att.keys():
-            self.att['blue'] = 100
-        if 'bright' not in self.att.keys():
-            self.att['bright'] = 200
+        self.att['red'] = 100
+        self.att['green'] = 100
+        self.att['blue'] = 100
+        self.att['bright'] = 200
     def updateAttr(self,cmd):
         logging.debug('%s update attributions'%(self.id))
         m = re.search('(\w+)([+-]\d+)',cmd)
@@ -143,6 +142,7 @@ class hass_light(hassIF):
         url = self.url + 'services/light/turn_off'
         data = {'entity_id': '%s' % self.id}
         return self._postRes(url, data)
+
     def turnRed(self,attr)
         att = {}
         att['red'] = 255
@@ -150,6 +150,19 @@ class hass_light(hassIF):
         att['blue'] = 0
         att['bright'] = 200
         pass
+
+    def color_flow(self,cnt):
+        i = 0
+        while (i < cnt):
+            r = random.randrange(0,256)
+            g = random.randrange(0,256)
+            b = random.randrange(0,256)
+            self.att['red'] = (r)%256
+            self.att['green'] = (g)%256
+            self.att['blue'] = (b)%256
+            i += 1
+            self.turnOn()
+            time.sleep(1)
     def getLightSer(self):
         serv = self._getServ()
         for i in serv:
@@ -214,7 +227,6 @@ class hassAPI(object):
             return 'morning'
         elif (t_now > t_night):
             return 'night'
-
     def getDevStat(self):
         #cmdl = 'hass livingroom door open'
         #print(self.sensor)
@@ -227,7 +239,6 @@ class hassAPI(object):
                 return 'hass livingroom1bed people appear'
             elif ('morning' in t):
                 return 'hass livingroom1desk weather bad'
-
         return cmd
 
 
@@ -237,10 +248,15 @@ class hassAPI(object):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
-    wea = hass_weather()
-    stat = wea.getStatus()
-    for i in stat:
-        print(i)
-    wea.weatherDisplay()
-    ret = wea.weatherChk()
-    print(ret)
+    #wea = hass_weather()
+    #stat = wea.getStatus()
+    #for i in stat:
+    #    print(i)
+    #wea.weatherDisplay()
+    #ret = wea.weatherChk()
+    #print(ret)
+    l1 = hass_light('light.livingroom1desk',0)
+    l1.color_flow(10)
+    #l1.turnOn()
+    #for i in l1.getStatus():
+    #    print(i)
