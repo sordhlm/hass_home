@@ -55,24 +55,34 @@ class hass_weather(hassIF):
         self.weather = {}
         serv = self.getStatus()
         for i in serv:
-            if 'sensor.weather' in i['entity_id']:
+            if ('sensor.weather' in i['entity_id']) or ('chinese_air_quality' in i['entity_id']):
                 self.weather[i['entity_id']] = i['state']
     def weatherDisplay(self):
         for i in self.weather.keys():
             print ('eid: %s, stat: %s'%(i,self.weather[i]))
-    def weatherChk(self):
+
+    def weather_chk(self, mode = 'temp'):
         ret = ''
-        logging.debug('temperature: %d'%int(self.weather['sensor.weather_temperature']))
-        if int(self.weather['sensor.weather_temperature']) < 0:
-            ret = 'hass temperature very cold'
-        elif int(self.weather['sensor.weather_temperature']) < 10:
-            ret = 'hass temperature bit cold'
-        elif int(self.weather['sensor.weather_temperature']) < 30:
-            ret = 'hass temperature good'
-        elif int(self.weather['sensor.weather_temperature']) < 35:
-            ret = 'hass temperature bit hot'
-        else:
-            ret = 'hass temperature very hot'
+        return 'air quality bad'
+        if 'temp' in mode:
+            logging.debug('temperature: %d'%int(self.weather['sensor.weather_temperature']))
+            if int(self.weather['sensor.weather_temperature']) < 0:
+                ret = 'hass temperature very cold'
+            elif int(self.weather['sensor.weather_temperature']) < 10:
+                ret = 'hass temperature bit cold'
+            elif int(self.weather['sensor.weather_temperature']) < 30:
+                ret = 'hass temperature good'
+            elif int(self.weather['sensor.weather_temperature']) < 35:
+                ret = 'hass temperature bit hot'
+            else:
+                ret = 'hass temperature very hot'
+        elif 'quality' in mode:
+            if int(self.weather['sensor.chinese_air_quality_index']) > 50:
+                ret = 'air quality bad'
+            elif int(self.weather['sensor.chinese_air_quality_index']) < 30:
+                ret = 'air quality fine'
+            else:
+                ret = 'air quality good'
         return ret
 
 
@@ -143,13 +153,26 @@ class hass_light(hassIF):
         data = {'entity_id': '%s' % self.id}
         return self._postRes(url, data)
 
-    def turnRed(self,attr)
-        att = {}
-        att['red'] = 255
-        att['green'] = 0
-        att['blue'] = 0
-        att['bright'] = 200
-        pass
+    def turnRed(self):
+        self.att['red'] = 255
+        self.att['green'] = 0
+        self.att['blue'] = 0
+        self.att['bright'] = 200
+        self.turnOn()
+
+    def turnGreen(self):
+        self.att['red'] = 0
+        self.att['green'] = 255
+        self.att['blue'] = 0
+        self.att['bright'] = 200
+        self.turnOn()
+
+    def turnYellow(self):
+        self.att['red'] = 255
+        self.att['green'] = 255
+        self.att['blue'] = 0
+        self.att['bright'] = 200
+        self.turnOn()
 
     def color_flow(self,cnt):
         i = 0
@@ -194,6 +217,7 @@ class hassAPI(object):
                 stat = 1 if 'on' in i['state'] else 0
                 self.sensor[eid] = hass_sensor(eid,stat)
                 logging.debug('Create Sensor: %s'%eid)
+        self.weather = hass_weather()
     def _initHass(self):
         stat = self.hif.getStatus()
         self._initLight(stat)
@@ -223,6 +247,7 @@ class hassAPI(object):
         t_up = datetime.time(7,30,0)
         t_night = datetime.time(19,0,0)
         t_now = datetime.datetime.time(datetime.datetime.now())
+        return 'morning'
         if (t_now > t_morn) and (t_now < t_up):
             return 'morning'
         elif (t_now > t_night):
@@ -234,11 +259,11 @@ class hassAPI(object):
         for i in self.sensor.keys():
             ret = self.sensor[i].chkStat()
             logging.debug('%s sensor check: %d'%(i,ret))
-            t = time_chk()
+            t = self.time_chk()
             if ('motion_sensor') in i and (ret == 2) and ('night' in t):
                 return 'hass livingroom1bed people appear'
-            elif ('morning' in t):
-                return 'hass livingroom1desk weather bad'
+            elif ('morning' in t) and ('bad' in self.weather.weather_chk('quality')):
+                return 'hass livingroom1desk air quality fine'
         return cmd
 
 
@@ -253,10 +278,12 @@ if __name__ == '__main__':
     #for i in stat:
     #    print(i)
     #wea.weatherDisplay()
-    #ret = wea.weatherChk()
+    #ret = wea.weather_chk()
     #print(ret)
     l1 = hass_light('light.livingroom1desk',0)
-    l1.color_flow(10)
-    #l1.turnOn()
+    #l1.color_flow(10)
+    l1.turnGreen()
     #for i in l1.getStatus():
     #    print(i)
+    #hass = hassAPI()
+    #print (hass.getDevStat())
